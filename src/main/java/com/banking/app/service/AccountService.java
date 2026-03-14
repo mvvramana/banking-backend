@@ -20,4 +20,23 @@ public class AccountService {
     private String generateAccountNumber() {
         return "AC" + System.currentTimeMillis();
     }
+    
+    public Account deposit(String accountNumber, Double amount) {
+        Account account = accountRepository
+                .findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        account.setBalance(account.getBalance() + amount);
+        return accountRepository.save(account);
+    }
+    
+    public Account withdraw(String accountNumber, Double amount) {
+        Account account = accountRepository
+                .findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        if(account.getBalance() < amount){
+            throw new RuntimeException("Insufficient Balance");
+        }
+        account.setBalance(account.getBalance() - amount);
+        return accountRepository.save(account);
+    }
 }

@@ -17,4 +17,16 @@ public class AccountController {
     public Account createAccount(@RequestBody Account account) {
         return accountService.createAccount(account);
     }
+    
+    @PostMapping("/deposit")
+    public Account deposit(@RequestParam String accountNumber,
+                           @RequestParam Double amount) {
+        return accountService.deposit(accountNumber, amount);
+    }
+    
+    @PostMapping("/withdraw")
+    public Account withdraw(@RequestParam String accountNumber,
+                            @RequestParam Double amount) {
+        return accountService.withdraw(accountNumber, amount);
+    }
 }
