@@ -4,12 +4,13 @@ import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.banking.app.entity.Account;
 import com.banking.app.entity.Transaction;
+import com.banking.app.exception.ResourceNotFoundException;
 import com.banking.app.repository.AccountRepository;
 import com.banking.app.repository.TransactionRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AccountService {
@@ -35,7 +36,7 @@ public class AccountService {
     public Account deposit(String accountNumber, Double amount) {
         Account account = accountRepository
                 .findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
         account.setBalance(account.getBalance() + amount);
         accountRepository.save(account);
 
@@ -53,7 +54,7 @@ public class AccountService {
     public Account withdraw(String accountNumber, Double amount) {
         Account account = accountRepository
                 .findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Account not found"));
         if(account.getBalance() < amount){
             throw new RuntimeException("Insufficient Balance");
         }
@@ -75,10 +76,10 @@ public class AccountService {
     public String transferMoney(String fromAccount, String toAccount, Double amount) {
         Account sender = accountRepository
                 .findByAccountNumber(fromAccount)
-                .orElseThrow(() -> new RuntimeException("Sender account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Sender account not found"));
         Account receiver = accountRepository
                 .findByAccountNumber(toAccount)
-                .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Receiver account not found"));
         if(sender.getBalance() < amount){
             throw new RuntimeException("Insufficient Balance");
         }
