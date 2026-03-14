@@ -1,57 +1,66 @@
 package com.banking.app.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity
-@Table(name="users")
+@Table(name = "users")
 public class User {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    private String name;
-    private String email;
-    private String password;
-    private String phone;
+	@NotBlank(message = "Name is required")
+	private String name;
 
-    public Long getId() {
-        return id;
-    }
+	@Email(message = "Invalid email format")
+	private String email;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	@NotBlank(message = "Password required")
+	@Size(min = 6, message = "Password must be at least 6 characters")
+	private String password;
 
-    public String getName() {
-        return name;
-    }
+	@NotBlank(message = "Phone number required")
+	private String phone;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public Long getId() {
+		return id;
+	}
 
-    public String getEmail() {
-        return email;
-    }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public String getPassword() {
-        return password;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+	public String getEmail() {
+		return email;
+	}
 
-    public String getPhone() {
-        return phone;
-    }
+	public void setEmail(String email) {
+		this.email = email;
+	}
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
 }
