@@ -9,6 +9,7 @@ import com.banking.app.entity.Account;
 import com.banking.app.entity.Transaction;
 import com.banking.app.repository.AccountRepository;
 import com.banking.app.repository.TransactionRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AccountService {
@@ -67,5 +68,42 @@ public class AccountService {
 
         transactionRepository.save(transaction);
         return account;
+    }
+    
+    //transfer money
+    @Transactional
+    public String transferMoney(String fromAccount, String toAccount, Double amount) {
+        Account sender = accountRepository
+                .findByAccountNumber(fromAccount)
+                .orElseThrow(() -> new RuntimeException("Sender account not found"));
+        Account receiver = accountRepository
+                .findByAccountNumber(toAccount)
+                .orElseThrow(() -> new RuntimeException("Receiver account not found"));
+        if(sender.getBalance() < amount){
+            throw new RuntimeException("Insufficient Balance");
+        }
+
+        sender.setBalance(sender.getBalance() - amount);
+        receiver.setBalance(receiver.getBalance() + amount);
+
+        accountRepository.save(sender);
+        accountRepository.save(receiver);
+
+        Transaction debitTransaction = new Transaction();
+        debitTransaction.setAccountNumber(fromAccount);
+        debitTransaction.setAmount(amount);
+        debitTransaction.setType("TRANSFER_DEBIT");
+        debitTransaction.setTransactionTime(java.time.LocalDateTime.now());
+
+        Transaction creditTransaction = new Transaction();
+        creditTransaction.setAccountNumber(toAccount);
+        creditTransaction.setAmount(amount);
+        creditTransaction.setType("TRANSFER_CREDIT");
+        creditTransaction.setTransactionTime(java.time.LocalDateTime.now());
+
+        transactionRepository.save(debitTransaction);
+        transactionRepository.save(creditTransaction);
+
+        return "Transfer Successful";
     }
 }

@@ -29,4 +29,11 @@ public class AccountController {
                             @RequestParam Double amount) {
         return accountService.withdraw(accountNumber, amount);
     }
+    
+    @PostMapping("/transfer")
+    public String transferMoney(@RequestParam String fromAccount,
+                                @RequestParam String toAccount,
+                                @RequestParam Double amount){
+        return accountService.transferMoney(fromAccount,toAccount,amount);
+    }
 }
