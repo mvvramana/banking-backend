@@ -1,42 +1,79 @@
 package com.banking.app.security;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.Collections;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain)
-                                    throws ServletException, IOException {
+	@Autowired
+	private JwtUtil jwtUtil;
 
-        String header = request.getHeader("Authorization");
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) {
+		String path = request.getServletPath();
+		// Skip authentication for login and register
+		return path.equals("/api/users/login") || path.equals("/api/users/register");
+	}
 
-        if (header != null && header.startsWith("Bearer ")) {
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
 
-            String token = header.substring(7);
+		log.info("JwtFilter running for path: {}", request.getServletPath());
 
-            UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(
-                            "user",
-                            null,
-                            Collections.emptyList());
+		try {
+			String header = request.getHeader("Authorization");
 
-            SecurityContextHolder.getContext().setAuthentication(auth);
-        }
+			if (header != null && header.startsWith("Bearer ")) {
 
-        filterChain.doFilter(request, response);
-    }
+				String token = header.substring(7);
+
+				String email = jwtUtil.extractEmail(token);
+				String role = jwtUtil.extractRole(token);
+
+				log.info("JWT Email: {}", email);
+				log.info("JWT Role: {}", role);
+
+				// IMPORTANT CHECK
+				if (email != null && role != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+					List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+
+					log.info("GrantedAuthorities: {}", authorities);
+
+					UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(email, null,
+							authorities);
+
+					// Attach request details
+					auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+					// SET AUTHENTICATION
+					SecurityContextHolder.getContext().setAuthentication(auth);
+
+					log.info("✅ Authentication set for user: {}", email);
+				}
+			}
+
+		} catch (Exception e) {
+			log.error("❌ JWT Filter error: {}", e.getMessage());
+		}
+
+		filterChain.doFilter(request, response);
+	}
 }

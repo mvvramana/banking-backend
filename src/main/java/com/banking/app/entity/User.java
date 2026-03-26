@@ -15,14 +15,24 @@ public class User {
 	private String name;
 
 	@Email(message = "Invalid email format")
+	@NotBlank(message = "Email is required")
+	@Column(unique = true, nullable = false)
 	private String email;
 
 	@NotBlank(message = "Password required")
 	@Size(min = 6, message = "Password must be at least 6 characters")
+	@Column(nullable = false)
 	private String password;
 
 	@NotBlank(message = "Phone number required")
+	@Column(unique = true, nullable = false)
 	private String phone;
+
+	@Column(nullable = false)
+	private String role; // ROLE_USER / ROLE_ADMIN
+
+	@OneToOne(mappedBy = "user")
+	private Account account;
 
 	public Long getId() {
 		return id;
@@ -63,4 +73,22 @@ public class User {
 	public void setPhone(String phone) {
 		this.phone = phone;
 	}
+
+	public String getRole() {
+		return role;
+	}
+
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+	public Account getAccount() {
+		return account;
+	}
+
+	public void setAccount(Account account) {
+		this.account = account;
+	}
+	
+
 }
